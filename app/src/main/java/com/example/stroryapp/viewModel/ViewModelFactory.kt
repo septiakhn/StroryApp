@@ -21,6 +21,15 @@ class ViewModelFactory private constructor(
             modelClass.isAssignableFrom(LoginViewModel::class.java) -> {
                 LoginViewModel(application, repository) as T
             }
+            modelClass.isAssignableFrom(SignupViewModel::class.java) -> {
+                SignupViewModel(application,repository) as T
+            }
+            modelClass.isAssignableFrom(DetailViewModel::class.java) -> {
+                DetailViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(AddViewModel::class.java) -> {
+                AddViewModel(repository) as T
+            }
             else -> throw IllegalArgumentException("Unknown ViewModel class: " + modelClass.name)
         }
     }

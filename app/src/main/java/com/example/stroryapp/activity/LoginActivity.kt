@@ -40,10 +40,10 @@ class LoginActivity : AppCompatActivity() {
             binding.apply {
                 if (isLoading) {
                     loginButton.visibility = View.INVISIBLE
-                    pgBar.visibility = View.VISIBLE
+                    progressBar.visibility = View.VISIBLE
                 } else {
                     loginButton.visibility = View.VISIBLE
-                    pgBar.visibility = View.INVISIBLE
+                    progressBar.visibility = View.INVISIBLE
                 }
             }
         }
