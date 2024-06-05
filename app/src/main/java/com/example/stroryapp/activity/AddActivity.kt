@@ -167,7 +167,7 @@ class AddActivity : AppCompatActivity() {
                             finish()
                         }
                         is Result.Error -> {
-                            showToast(result.message)
+                            showToast(result.error)
                         }
                     }
                 }

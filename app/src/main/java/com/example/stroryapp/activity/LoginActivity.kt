@@ -6,83 +6,99 @@ import android.os.Bundle
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.ViewModelProvider
+import com.example.stroryapp.data.Result
 import com.example.stroryapp.data.pref.UserModel
 import com.example.stroryapp.databinding.ActivityLoginBinding
+import com.example.stroryapp.databinding.ActivitySignupBinding
 import com.example.stroryapp.viewModel.LoginViewModel
 import com.example.stroryapp.viewModel.ViewModelFactory
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
-    private lateinit var viewModel: LoginViewModel
+    private val viewModel by viewModels<LoginViewModel> {
+        ViewModelFactory.getInstance(application)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
-        viewModel = getViewModel(this)
         setContentView(binding.root)
 
-        setupObservers()
-        setupListeners()
-    }
+        binding.loginButton.setOnClickListener {
+            val email = binding.emailEditText.text.toString()
+            val password = binding.passwordEditText.text.toString()
 
-    private fun setupObservers() {
-        viewModel.isButtonEnabled.observe(this) { isEnabled ->
-            binding.loginButton.isEnabled = isEnabled
-        }
-
-        viewModel.isLoadingLogin.observe(this) { isLoading ->
-            binding.apply {
-                if (isLoading) {
-                    loginButton.visibility = View.INVISIBLE
-                    progressBar.visibility = View.VISIBLE
-                } else {
-                    loginButton.visibility = View.VISIBLE
-                    progressBar.visibility = View.INVISIBLE
+            viewModel.postLogin(email, password).observe(this) { result ->
+                if (result != null) {
+                    when (result) {
+                        is Result.Success -> {
+                            binding.progressBar.visibility = View.GONE
+                            result.data.loginResult?.let { loginResult ->
+                                viewModel.saveSession(
+                                    UserModel(
+                                        email,
+                                        result.data.loginResult?.token!!,
+                                        result.data.loginResult.name!!,
+                                        true
+                                    )
+                                )
+                                val intent = Intent(this, MainActivity::class.java)
+                                intent.flags =
+                                    Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                                startActivity(intent)
+                                finish()
+                            }
+                        }
+                        is Result.Error -> {
+                            binding.progressBar.visibility = View.GONE
+                            Toast.makeText(this, "Gagal login: ${result.error}", Toast.LENGTH_SHORT).show()
+                        }
+                        is Result.Loading -> {
+                            binding.progressBar.visibility = View.VISIBLE
+                        }
+                    }
                 }
             }
         }
-
-        viewModel.errorResponse.observe(this) { error ->
-            when (error.second) {
-                "Invalid password" -> binding.passwordEditTextLayout.error = "Invalid password"
-                "User not found" -> binding.emailEditTextLayout.error = "User not found"
-            }
-        }
-
-        viewModel.isLoginSuccess.observe(this) { isSuccess ->
-            if (isSuccess) {
-                val intent = Intent(this, MainActivity::class.java)
-                startActivity(intent)
-                finish() // Optional: finish LoginActivity to prevent going back to it
-            }
-        }
+        setupView()
+        setupAction()
     }
 
-    private fun setupListeners() {
-        binding.apply {
-            emailEditText.doOnTextChanged { text, _, _, _ ->
-                viewModel.emailValidation(text.toString())
-            }
-
-            passwordEditText.doOnTextChanged { text, _, _, _ ->
-                viewModel.passwordValidation(text.toString())
-            }
-
-            loginButton.setOnClickListener {
-                viewModel.postLogin()
-            }
+    private fun setupView() {
+        @Suppress("DEPRECATION")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.insetsController?.hide(WindowInsets.Type.statusBars())
+        } else {
+            window.setFlags(
+                WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN
+            )
         }
+        supportActionBar?.hide()
     }
 
-    private fun getViewModel(activity: AppCompatActivity): LoginViewModel {
-        val factory = ViewModelFactory.getInstance(activity.application)
-        return ViewModelProvider(activity, factory)[LoginViewModel::class.java]
+    private fun setupAction() {
+        binding.loginButton.setOnClickListener {
+            val email = binding.emailEditText.text.toString()
+
+            AlertDialog.Builder(this).apply {
+                setTitle("Yeah!")
+                setMessage("Akun dengan $email sudah jadi nih. Yuk, login dan belajar coding.")
+                setPositiveButton("Lanjut") { _, _ ->
+                    finish()
+                }
+                create()
+                show()
+            }
+        }
     }
 }
+
 
