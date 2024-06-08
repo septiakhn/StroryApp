@@ -1,5 +1,7 @@
 package com.example.stroryapp.activity
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -53,7 +55,35 @@ class SignupActivity : AppCompatActivity() {
             }
         }
         setupView()
-        setupAction()
+//        setupAction()
+        setupAnimation()
+    }
+
+    private fun setupAnimation() {
+        ObjectAnimator.ofFloat(binding.imageView, View.TRANSLATION_X, -30f, 30f).apply {
+            duration = 6000
+            repeatCount = ObjectAnimator.INFINITE
+            repeatMode = ObjectAnimator.REVERSE
+        }.start()
+
+        val register = ObjectAnimator.ofFloat(binding.signupButton, View.ALPHA, 1f).setDuration(300)
+        val title = ObjectAnimator.ofFloat(binding.titleTextView, View.ALPHA, 1f).setDuration(300)
+        val name = ObjectAnimator.ofFloat(binding.nameTextView, View.ALPHA, 1f).setDuration(300)
+        val nameLayout =
+            ObjectAnimator.ofFloat(binding.nameEditTextLayout, View.ALPHA, 1f).setDuration(300)
+        val email = ObjectAnimator.ofFloat(binding.emailTextView, View.ALPHA, 1f).setDuration(300)
+        val emailLayout =
+            ObjectAnimator.ofFloat(binding.emailEditTextLayout, View.ALPHA, 1f).setDuration(300)
+        val password =
+            ObjectAnimator.ofFloat(binding.passwordTextView, View.ALPHA, 1f).setDuration(300)
+        val passwordLayout =
+            ObjectAnimator.ofFloat(binding.passwordEditTextLayout, View.ALPHA, 1f).setDuration(300)
+
+        AnimatorSet().apply {
+            playSequentially(
+                title, name, nameLayout, email, emailLayout, password, passwordLayout, register)
+            start()
+        }
     }
 
     private fun setupView() {
@@ -69,19 +99,19 @@ class SignupActivity : AppCompatActivity() {
         supportActionBar?.hide()
     }
 
-    private fun setupAction() {
-        binding.signupButton.setOnClickListener {
-            val email = binding.emailEditText.text.toString()
-
-            AlertDialog.Builder(this).apply {
-                setTitle("Yeah!")
-                setMessage("Akun dengan $email sudah jadi nih. Yuk, login dan belajar coding.")
-                setPositiveButton("Lanjut") { _, _ ->
-                    finish()
-                }
-                create()
-                show()
-            }
-        }
-    }
+//    private fun setupAction() {
+//        binding.signupButton.setOnClickListener {
+//            val email = binding.emailEditText.text.toString()
+//
+//            AlertDialog.Builder(this).apply {
+//                setTitle("Yeah!")
+//                setMessage("Akun dengan $email sudah jadi nih. Yuk, login dan belajar coding.")
+//                setPositiveButton("Lanjut") { _, _ ->
+//                    finish()
+//                }
+//                create()
+//                show()
+//            }
+//        }
+//    }
 }

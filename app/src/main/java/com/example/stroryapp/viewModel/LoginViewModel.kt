@@ -23,7 +23,7 @@ import kotlinx.coroutines.withContext
 import retrofit2.Response
 import javax.security.auth.callback.Callback
 
-class LoginViewModel(application: Application, private val repository: UserRepository) : AndroidViewModel(application) {
+class LoginViewModel(private val repository: UserRepository) : ViewModel() {
     fun saveSession(user: UserModel) {
         viewModelScope.launch {
             repository.saveSession(user)

@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.paging.PagingDataAdapter
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.stroryapp.R
@@ -13,9 +15,20 @@ import com.example.stroryapp.data.pref.UserModel
 import com.example.stroryapp.databinding.ItemRowBinding
 import com.example.stroryapp.response.ListStoryItem
 
-class UserAdapter (private val dataList: List<ListStoryItem>) : RecyclerView.Adapter<UserAdapter.ViewHolder>() {
-    class ViewHolder(val binding: ItemRowBinding): RecyclerView.ViewHolder(binding.root) {
-        // Bind your data here
+class UserAdapter : PagingDataAdapter<ListStoryItem, UserAdapter.MyViewHolder>(DIFF_CALLBACK) {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
+        val binding = ItemRowBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return MyViewHolder(binding)
+    }
+
+    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
+        val review = getItem(position)
+        if (review != null) {
+            holder.bind(review)
+        }
+    }
+
+    class MyViewHolder(val binding: ItemRowBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(review: ListStoryItem) {
             binding.tvItemName.text = review.name
             binding.deskripsi.text = review.description
@@ -30,17 +43,15 @@ class UserAdapter (private val dataList: List<ListStoryItem>) : RecyclerView.Ada
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemRowBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(binding)
-    }
+    companion object {
+        val DIFF_CALLBACK = object : DiffUtil.ItemCallback<ListStoryItem>() {
+            override fun areItemsTheSame(oldItem: ListStoryItem, newItem: ListStoryItem): Boolean {
+                return oldItem == newItem
+            }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val review = dataList[position]
-        holder.bind(review)
-    }
-
-    override fun getItemCount(): Int {
-        return dataList.size
+            override fun areContentsTheSame(oldItem: ListStoryItem, newItem: ListStoryItem): Boolean {
+                return oldItem == newItem
+            }
+        }
     }
 }

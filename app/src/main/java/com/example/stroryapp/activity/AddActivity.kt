@@ -18,6 +18,9 @@ import androidx.core.content.FileProvider
 import com.example.stroryapp.R
 import com.example.stroryapp.activity.LoginActivity
 import com.example.stroryapp.activity.MainActivity
+import com.example.stroryapp.data.ImageUtils
+import com.example.stroryapp.data.ImageUtils.reduceFileImage
+import com.example.stroryapp.data.ImageUtils.uriToFile
 import com.example.stroryapp.data.Result
 import com.example.stroryapp.databinding.ActivityAddBinding
 import com.example.stroryapp.viewModel.AddViewModel
@@ -31,16 +34,9 @@ import java.util.Locale
 class AddActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAddBinding
     private var currentImageUri: Uri? = null
-    private lateinit var currentPhotoPath: String
     private val viewModel by viewModels<AddViewModel> {
         ViewModelFactory.getInstance(application)
     }
-
-    private fun allPermissionsGranted() =
-        ContextCompat.checkSelfPermission(
-            this,
-            REQUIRED_PERMISSION
-        ) == PackageManager.PERMISSION_GRANTED
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,15 +50,14 @@ class AddActivity : AppCompatActivity() {
         }
 
         binding.btCamera.setOnClickListener {
-            startCamera()
+            if (ImageUtils.allPermissionsGranted(this, REQUIRED_PERMISSION)) {
+                currentImageUri = ImageUtils.startCamera(launcherIntentCamera, this)
+            }
         }
-        binding.btGaleri.setOnClickListener {
-            startGallery()
-        }
-    }
 
-    private fun startGallery() {
-        launcherGallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        binding.btGaleri.setOnClickListener {
+            ImageUtils.startGallery(launcherGallery)
+        }
     }
 
     private val launcherGallery = registerForActivityResult(
@@ -70,85 +65,25 @@ class AddActivity : AppCompatActivity() {
     ) { uri: Uri? ->
         if (uri != null) {
             currentImageUri = uri
-            showImage()
+            ImageUtils.showImage(uri, binding.imageView2)
         } else {
             Log.d("Photo Picker", "No media selected")
         }
-    }
-
-    private fun startCamera() {
-        currentImageUri = getImageUri()
-        launcherIntentCamera.launch(currentImageUri)
     }
 
     private val launcherIntentCamera = registerForActivityResult(
         ActivityResultContracts.TakePicture()
     ) { isSuccess ->
         if (isSuccess) {
-            showImage()
+            currentImageUri?.let {
+                ImageUtils.showImage(it, binding.imageView2)
+            }
         }
-    }
-
-    private fun showImage() {
-        currentImageUri?.let {
-            Log.d("Image URI", "showImage: $it")
-            binding.imageView2.setImageURI(it)
-        }
-    }
-
-    private fun getImageUri(): Uri {
-        val photoFile: File = createImageFile()
-        return FileProvider.getUriForFile(
-            this,
-            "com.example.stroryapp.fileprovider",
-            photoFile
-        )
-    }
-
-    @Throws(IOException::class)
-    private fun createImageFile(): File {
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val storageDir: File? = getExternalFilesDir(null)
-        return File.createTempFile(
-            "JPEG_${timeStamp}_",
-            ".jpg",
-            storageDir
-        ).apply {
-            currentPhotoPath = absolutePath
-        }
-    }
-
-    private fun uriToFile(uri: Uri, context: Context): File {
-        val contentResolver = context.contentResolver
-        val myFile = createTempFile(context)
-
-        val inputStream = contentResolver.openInputStream(uri) ?: return myFile
-        val outputStream = myFile.outputStream()
-        inputStream.copyTo(outputStream)
-        inputStream.close()
-        outputStream.close()
-
-        return myFile
-    }
-
-    private fun createTempFile(context: Context): File {
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val storageDir: File? = context.getExternalFilesDir(null)
-        return File.createTempFile(
-            "JPEG_${timeStamp}_",
-            ".jpg",
-            storageDir
-        )
-    }
-
-    private fun File.reduceFileImage(): File {
-        // Implement image compression if necessary
-        return this
     }
 
     private fun uploadStory(token: String) {
         currentImageUri?.let { uri ->
-            val imageFile = uriToFile(uri, this).reduceFileImage()
+            val imageFile = ImageUtils.uriToFile(uri, this).reduceFileImage()
             Log.d("Image File", "showImage: ${imageFile.path}")
             val description = binding.deskripsi.text.toString()
 
@@ -172,6 +107,46 @@ class AddActivity : AppCompatActivity() {
                     }
                 }
             }
+        } ?: showToast(getString(R.string.image_warning))
+    }
+
+    private fun uploadStory(token: String, lat: String, lon: String) {
+
+        currentImageUri?.let { uri ->
+
+            val imageFile = uriToFile(uri, this).reduceFileImage()
+            Log.d("Image File", "showImage: ${imageFile.path}")
+            val description = binding.deskripsi.text.toString()
+
+
+            viewModel.uploadImage(
+                token,
+                imageFile,
+                description,
+                lat, lon
+            ).observe(this) { result ->
+                if (result != null) {
+                    when (result) {
+                        is Result.Loading -> {
+
+                        }
+
+                        is Result.Success -> {
+                            result.data.message.let { showToast(it!!) }
+                            val intent = Intent(this, MainActivity::class.java)
+                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            startActivity(intent)
+                            finish()
+                        }
+
+                        is Result.Error -> {
+                            showToast(result.error)
+                            // showLoading(false)
+                        }
+                    }
+                }
+            }
+
         } ?: showToast(getString(R.string.image_warning))
     }
 
