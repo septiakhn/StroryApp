@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.getSession().observe(this) { user ->
             if (!user.isLogin) {
-                startActivity(Intent(this, LoginActivity::class.java))
+                startActivity(Intent(this, WelcomeActivity::class.java))
                 finish()
             } else {
                 viewModel.getStory(user.token).observe(this) { story ->
