@@ -36,7 +36,10 @@ class LoginActivity : AppCompatActivity() {
         // Mengakses TextInputLayout
         val emailInputLayout = binding.emailEditTextLayout
         val passwordInputLayout = binding.passwordEditTextLayout
-
+        binding.registerLayout.setOnClickListener{
+            val intent = Intent(this, SignupActivity::class.java)
+            startActivity(intent)
+        }
         binding.loginButton.setOnClickListener {
             emailInputLayout
             val email = binding.emailEditText.text.toString()
