@@ -16,7 +16,19 @@ import kotlinx.coroutines.launch
 
 class MainViewModel (private val repository: UserRepository) : ViewModel() {
     fun getSession() = repository.getSession().asLiveData()
-    fun getStory (token: String) : LiveData<PagingData<ListStoryItem>> = repository.getPaging(token)
+//    fun loadStory(token: String): LiveData<Result<List<ListStoryItem>>> {
+//        val resultLiveData = MutableLiveData<Result<List<ListStoryItem>>>()
+//
+//        viewModelScope.launch {
+//            repository.getStory(token).collect { result ->
+//                resultLiveData.value = result
+//            }
+//        }
+//
+//        return resultLiveData
+//    }
+    fun getStory(token: String) = repository.getStory(token)
+//    fun getStory(token: String): LiveData<Result<List<ListStoryItem>>> = repository.getStory(token)
     fun getLogout () {
         viewModelScope.launch {
             repository.logout()

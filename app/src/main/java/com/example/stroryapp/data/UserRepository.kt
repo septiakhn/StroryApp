@@ -1,6 +1,7 @@
 package com.example.stroryapp.data
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -57,7 +58,37 @@ class UserRepository private constructor(
             emit(Result.Error("${e.message}"))
         }
     }
+//    fun getStory(token: String): LiveData<Result<List<ListStoryItem>>> = liveData {
+//        emit(Result.Loading)
+//        try {
+//            val response = apiService.getStories("Bearer $token")
+//            if (response.isSuccessful) {
+//                val storyResponse = response.body()
+//                if (storyResponse?.error == false) {
+//                    val storyList = storyResponse.listStory ?: emptyList()
+//                    emit(Result.Success(storyList))
+//                } else {
+//                    emit(Result.Error("Error: ${storyResponse?.message ?: "Unknown error"}"))
+//                }
+//            } else {
+//                emit(Result.Error("Error: ${response.message()}"))
+//            }
+//        } catch (e: Exception) {
+//            emit(Result.Error("Error: ${e.message}"))
+//        }
+//    }
+//
 
+//    fun getStory(token: String): LiveData<Result<List<ListStoryItem>>> = liveData {
+//        emit(Result.Loading)
+//        try {
+//            val response = apiService.getStories("Bearer $token")
+//            emit(Result.Success(response))
+//        } catch (e: Exception) {
+//            emit(Result.Error("${e.message}"))
+//        }
+//    }
+    //1
     fun getStory(token: String) = liveData {
         emit(Result.Loading)
         try {
@@ -111,30 +142,6 @@ class UserRepository private constructor(
         } catch (e: Exception) {
             emit(Result.Error("${e.message}"))
         }
-    }
-    suspend fun getStoriesWithLocation(token: String): LiveData<Result<StoryResponse>> =
-        liveData {
-            emit(Result.Loading)
-            try {
-                val successResponse = apiService.getStoriesWithLocation("Bearer $token")
-                emit(Result.Success(successResponse))
-            } catch (e: HttpException) {
-                val errorBody = e.response()?.errorBody().toString()
-                val errorResponse = Gson().fromJson(errorBody, StoryResponse::class.java)
-                emit(errorResponse.message.let { Result.Error(it.toString()) })
-            } catch (e: Exception) {
-                emit(Result.Error("Error : ${e.message.toString()}"))
-            }
-        }
-    fun getPaging(token: String): LiveData<PagingData<ListStoryItem>> {
-        return Pager(
-            config = PagingConfig(
-                pageSize = 5
-            ),
-            pagingSourceFactory = {
-                StoryPagingSource(apiService, token)
-            }
-        ).liveData
     }
 
     companion object {

@@ -1,19 +1,17 @@
 package com.example.stroryapp.activity
 
 import android.content.Intent
-import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.view.WindowInsets
-import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.stroryapp.R
+import com.example.stroryapp.data.Result
 import com.example.stroryapp.data.UserAdapter
 import com.example.stroryapp.databinding.ActivityMainBinding
-import com.example.stroryapp.response.ListStoryItem
 import com.example.stroryapp.viewModel.MainViewModel
 import com.example.stroryapp.viewModel.ViewModelFactory
 
@@ -38,15 +36,36 @@ class MainActivity : AppCompatActivity() {
                 startActivity(Intent(this, WelcomeActivity::class.java))
                 finish()
             } else {
-                viewModel.getStory(user.token).observe(this) { story ->
-                    if (story != null) {
-                        binding.progressBar.visibility = View.GONE
-                        val adapter = UserAdapter()
-                        binding.rvReview.layoutManager = LinearLayoutManager(this)
-                        adapter.submitData(lifecycle, story)
-                        binding.rvReview.adapter = adapter
-                        binding.halo.text = resources.getString(R.string.greeting)
-                        Log.d("nama penggunan ", "onCreate: ${user.id}")
+                viewModel.getStory(user.token).observe(this) { it ->
+                    if (it != null) {
+                        when (it) {
+                            is Result.Loading -> {
+                                // Tampilkan progress bar atau indikator loading lainnya
+                                binding.progressBar.visibility = View.VISIBLE
+                            }
+                            is Result.Success -> {
+                                // Sembunyikan progress bar
+                                binding.progressBar.visibility = View.GONE
+
+                                // Ambil data story dan tampilkan dalam RecyclerView
+                                val adapter = UserAdapter(it.data.listStory!!) { clickedStory ->
+                                    // Handle item click here if needed
+                                    val intentDetail = Intent(this@MainActivity, DetailActivity::class.java)
+                                    intentDetail.putExtra(DetailActivity.EXTRA_ID, clickedStory.id)
+                                    startActivity(intentDetail)
+                                }
+                                binding.rvReview.layoutManager = LinearLayoutManager(this)
+                                binding.rvReview.adapter = adapter
+                                binding.halo.text = resources.getString(R.string.greeting)
+                                Log.d("nama pengguna ", "onCreate: ${user.id}")
+                            }
+                            is Result.Error -> {
+                                // Tangani kesalahan, seperti menampilkan pesan kesalahan
+                                Log.e("MainActivity", "Error: ${it.error}")
+                                // Atau tampilkan pesan kesalahan pada UI
+                                Toast.makeText(this, "Error: ${it.error}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     }
                 }
             }
