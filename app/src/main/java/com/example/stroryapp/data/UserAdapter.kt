@@ -16,7 +16,7 @@ class UserAdapter(private val storyList: List<ListStoryItem?>, private val onIte
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        holder.bind(storyList[position])
+        storyList[position]?.let { holder.bind(it) }
     }
 
     override fun getItemCount(): Int {

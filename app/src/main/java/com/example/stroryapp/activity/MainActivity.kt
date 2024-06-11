@@ -4,6 +4,8 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -48,7 +50,7 @@ class MainActivity : AppCompatActivity() {
                                 binding.progressBar.visibility = View.GONE
 
                                 // Ambil data story dan tampilkan dalam RecyclerView
-                                val adapter = UserAdapter(it.data.listStory!!) { clickedStory ->
+                                val adapter = UserAdapter(it.data.listStory) { clickedStory ->
                                     // Handle item click here if needed
                                     val intentDetail = Intent(this@MainActivity, DetailActivity::class.java)
                                     intentDetail.putExtra(DetailActivity.EXTRA_ID, clickedStory.id)
@@ -78,14 +80,21 @@ class MainActivity : AppCompatActivity() {
                     true
                 }else -> false
 
-//                R.id.map -> {
-//                    val intent = Intent(this@MainActivity, MapsActivity::class.java)
-//                    startActivity(intent)
-//                    true
-//                }
-
-//                else -> false
             }
+        }
+    }
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_option, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.logout -> {
+                viewModel.getLogout()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 }
