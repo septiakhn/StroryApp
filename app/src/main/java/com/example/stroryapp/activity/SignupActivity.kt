@@ -34,22 +34,20 @@ class SignupActivity : AppCompatActivity() {
             val password = binding.passwordEditText.text.toString()
 
             viewModel.register(name, email, password).observe(this){result->
-                if (result != null){
-                    when (result){
-                        is Result.Success ->{
-                            binding.progressBar.visibility = View.GONE
-                            val intent = Intent(this, LoginActivity::class.java)
-                            startActivity(intent)
-                            finish()
-                        }
-                        is Result.Error ->{
-                            binding.progressBar.visibility = View.GONE
-                            Toast.makeText(this, "gagal login", Toast.LENGTH_SHORT).show()
-                        }
-                        is Result.Loading -> {
-                            // Handle other possible states such as Result.Loading if necessary
-                            binding.progressBar.visibility = View.VISIBLE
-                        }
+                when (result) {
+                    is Result.Success -> {
+                        binding.progressBar.visibility = View.GONE
+                        Toast.makeText(this, "Registration successful! Please login.", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(this, LoginActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                    is Result.Error -> {
+                        binding.progressBar.visibility = View.GONE
+                        Toast.makeText(this, "Failed to register: ${result.error}", Toast.LENGTH_SHORT).show()
+                    }
+                    is Result.Loading -> {
+                        binding.progressBar.visibility = View.VISIBLE
                     }
                 }
             }
