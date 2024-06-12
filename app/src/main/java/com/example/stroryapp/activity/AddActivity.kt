@@ -18,10 +18,10 @@ import androidx.core.content.FileProvider
 import com.example.stroryapp.R
 import com.example.stroryapp.activity.LoginActivity
 import com.example.stroryapp.activity.MainActivity
-import com.example.stroryapp.data.ImageUtils
-import com.example.stroryapp.data.ImageUtils.reduceFileImage
-import com.example.stroryapp.data.ImageUtils.uriToFile
 import com.example.stroryapp.data.Result
+import com.example.stroryapp.data.getImageUri
+import com.example.stroryapp.data.reduceFileImage
+import com.example.stroryapp.data.uriToFile
 import com.example.stroryapp.databinding.ActivityAddBinding
 import com.example.stroryapp.viewModel.AddViewModel
 import com.example.stroryapp.viewModel.ViewModelFactory
@@ -37,6 +37,11 @@ class AddActivity : AppCompatActivity() {
     private val viewModel by viewModels<AddViewModel> {
         ViewModelFactory.getInstance(application)
     }
+    private fun allPermissionsGranted() =
+        ContextCompat.checkSelfPermission(
+            this,
+            REQUIRED_PERMISSION
+        ) == PackageManager.PERMISSION_GRANTED
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,44 +51,78 @@ class AddActivity : AppCompatActivity() {
             if (!user.isLogin) {
                 startActivity(Intent(this, LoginActivity::class.java))
                 finish()
+            }else {
+
+                binding.btUpload.setOnClickListener {
+                    uploadStory(user.token)
+                }
             }
         }
-
         binding.btCamera.setOnClickListener {
-            if (ImageUtils.allPermissionsGranted(this, REQUIRED_PERMISSION)) {
-                currentImageUri = ImageUtils.startCamera(launcherIntentCamera, this)
-            }
+            startCamera()
         }
-
         binding.btGaleri.setOnClickListener {
-            ImageUtils.startGallery(launcherGallery)
+            startGallery()
         }
+//        binding.btCamera.setOnClickListener {
+//            if (ImageUtils.allPermissionsGranted(this, REQUIRED_PERMISSION)) {
+//                currentImageUri = ImageUtils.startCamera(launcherIntentCamera, this)
+//            }
+//        }
+//
+//        binding.btGaleri.setOnClickListener {
+//            ImageUtils.startGallery(launcherGallery)
+//        }
     }
-
+    private fun startGallery() {
+        launcherGallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+    }
     private val launcherGallery = registerForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         if (uri != null) {
             currentImageUri = uri
-            ImageUtils.showImage(uri, binding.imageView2)
+            showImage()
         } else {
             Log.d("Photo Picker", "No media selected")
         }
     }
+    private fun startCamera() {
+//        currentImageUri = getImageUri(this)
+//        launcherIntentCamera.launch(currentImageUri)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            currentImageUri = getImageUri(this)
+            launcherIntentCamera.launch(currentImageUri)
+        } else {
+            requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private val requestCameraPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                startCamera()
+            } else {
+                showToast("Camera permission is required to take photos")
+            }
+        }
 
     private val launcherIntentCamera = registerForActivityResult(
         ActivityResultContracts.TakePicture()
     ) { isSuccess ->
         if (isSuccess) {
-            currentImageUri?.let {
-                ImageUtils.showImage(it, binding.imageView2)
-            }
+            showImage()
         }
     }
-
+    private fun showImage() {
+        currentImageUri?.let {
+            Log.d("Image URI", "showImage: $it")
+            binding.imageView2.setImageURI(it)
+        }
+    }
     private fun uploadStory(token: String) {
         currentImageUri?.let { uri ->
-            val imageFile = ImageUtils.uriToFile(uri, this).reduceFileImage()
+            val imageFile = uriToFile(uri, this).reduceFileImage()
             Log.d("Image File", "showImage: ${imageFile.path}")
             val description = binding.deskripsi.text.toString()
 
@@ -110,45 +149,45 @@ class AddActivity : AppCompatActivity() {
         } ?: showToast(getString(R.string.image_warning))
     }
 
-    private fun uploadStory(token: String, lat: String, lon: String) {
-
-        currentImageUri?.let { uri ->
-
-            val imageFile = uriToFile(uri, this).reduceFileImage()
-            Log.d("Image File", "showImage: ${imageFile.path}")
-            val description = binding.deskripsi.text.toString()
-
-
-            viewModel.uploadImage(
-                token,
-                imageFile,
-                description,
-                lat, lon
-            ).observe(this) { result ->
-                if (result != null) {
-                    when (result) {
-                        is Result.Loading -> {
-
-                        }
-
-                        is Result.Success -> {
-                            result.data.message.let { showToast(it!!) }
-                            val intent = Intent(this, MainActivity::class.java)
-                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            startActivity(intent)
-                            finish()
-                        }
-
-                        is Result.Error -> {
-                            showToast(result.error)
-                            // showLoading(false)
-                        }
-                    }
-                }
-            }
-
-        } ?: showToast(getString(R.string.image_warning))
-    }
+//    private fun uploadStory(token: String, lat: String, lon: String) {
+//
+//        currentImageUri?.let { uri ->
+//
+//            val imageFile = uriToFile(uri, this).reduceFileImage()
+//            Log.d("Image File", "showImage: ${imageFile.path}")
+//            val description = binding.deskripsi.text.toString()
+//
+//
+//            viewModel.uploadImage(
+//                token,
+//                imageFile,
+//                description,
+//                lat, lon
+//            ).observe(this) { result ->
+//                if (result != null) {
+//                    when (result) {
+//                        is Result.Loading -> {
+//
+//                        }
+//
+//                        is Result.Success -> {
+//                            result.data.message.let { showToast(it!!) }
+//                            val intent = Intent(this, MainActivity::class.java)
+//                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
+//                            startActivity(intent)
+//                            finish()
+//                        }
+//
+//                        is Result.Error -> {
+//                            showToast(result.error)
+//                            // showLoading(false)
+//                        }
+//                    }
+//                }
+//            }
+//
+//        } ?: showToast(getString(R.string.image_warning))
+//    }
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
