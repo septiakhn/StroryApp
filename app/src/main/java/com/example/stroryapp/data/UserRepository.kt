@@ -15,6 +15,7 @@ import com.example.stroryapp.response.StoryResponse
 import com.example.stroryapp.retrofit.ApiService
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -58,37 +59,7 @@ class UserRepository private constructor(
             emit(Result.Error("${e.message}"))
         }
     }
-//    fun getStory(token: String): LiveData<Result<List<ListStoryItem>>> = liveData {
-//        emit(Result.Loading)
-//        try {
-//            val response = apiService.getStories("Bearer $token")
-//            if (response.isSuccessful) {
-//                val storyResponse = response.body()
-//                if (storyResponse?.error == false) {
-//                    val storyList = storyResponse.listStory ?: emptyList()
-//                    emit(Result.Success(storyList))
-//                } else {
-//                    emit(Result.Error("Error: ${storyResponse?.message ?: "Unknown error"}"))
-//                }
-//            } else {
-//                emit(Result.Error("Error: ${response.message()}"))
-//            }
-//        } catch (e: Exception) {
-//            emit(Result.Error("Error: ${e.message}"))
-//        }
-//    }
 //
-
-//    fun getStory(token: String): LiveData<Result<List<ListStoryItem>>> = liveData {
-//        emit(Result.Loading)
-//        try {
-//            val response = apiService.getStories("Bearer $token")
-//            emit(Result.Success(response))
-//        } catch (e: Exception) {
-//            emit(Result.Error("${e.message}"))
-//        }
-//    }
-    //1
     fun getStory(token: String) = liveData {
         emit(Result.Loading)
         try {
@@ -143,6 +114,24 @@ class UserRepository private constructor(
             emit(Result.Error("${e.message}"))
         }
     }
+    fun getStoriesWithLocation() : Flow<Result<StoryResponse>> = flow  {
+        emit(Result.Loading)
+        try {
+            val response = apiService.getStoriesWithLocation()
+            emit(Result.Success(response))
+        } catch (e: Exception) {
+            emit(Result.Error("${e.message}"))
+        }
+    }
+//    fun getStoriesWithLocation() = liveData {
+//        emit(Result.Loading)
+//        try {
+//            val response = apiService.getStoriesWithLocation()
+//            emit(Result.Success(response))
+//        } catch (e: Exception) {
+//            emit(Result.Error("${e.message}"))
+//        }
+//    }
 
     companion object {
         @Volatile

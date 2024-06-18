@@ -61,4 +61,8 @@ interface ApiService {
         @Part("description") description: RequestBody
     ):UploadResponse
 
+    @GET("stories")
+    suspend fun getStoriesWithLocation(
+        @Query("location") location : Int = 1,
+    ): StoryResponse
 }

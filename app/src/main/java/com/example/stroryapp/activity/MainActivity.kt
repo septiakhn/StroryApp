@@ -87,14 +87,34 @@ class MainActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.menu_option, menu)
         return true
     }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
+        when (item.itemId) {
             R.id.logout -> {
                 viewModel.getLogout()
-                true
+                return true
             }
-            else -> super.onOptionsItemSelected(item)
+            R.id.map -> {
+                // Launch MapActivity here
+                startActivity(Intent(this@MainActivity, MapActivity::class.java))
+                return true
+            }
+            else -> return super.onOptionsItemSelected(item)
         }
     }
+//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//        when (item.itemId) {
+//            R.id.logout -> {
+//                viewModel.getLogout()
+//                true
+//            }
+//            R.id.map -> {
+//                Toast.makeText(this@MainActivity, "Opening Map Activity", Toast.LENGTH_SHORT).show()
+//                val intent = Intent(this@MainActivity, MapActivity::class.java)
+//                startActivity(intent)
+//                true
+//            }
+//            else -> return super.onOptionsItemSelected(item)
+//        }
+//        return false
+//    }
 }

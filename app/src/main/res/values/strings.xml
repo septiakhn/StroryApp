@@ -23,4 +23,5 @@
     <string name="gallery">Gallery</string>
     <string name="upload">Upload</string>
     <string name="image_warning">gambar kosong</string>
+    <string name="map">peta</string>
 </resources>

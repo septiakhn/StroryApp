@@ -40,6 +40,9 @@
             android:name=".activity.SignupActivity">
         </activity>
         <activity
+            android:name=".activity.MapActivity">
+        </activity>
+        <activity
             android:name=".activity.DetailActivity">
         </activity>
         <activity
@@ -54,6 +57,9 @@
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"/>
+            <meta-data
+                android:name="com.google.android.geo.API_KEY"
+                android:value="AIzaSyDrRQWH5N7SO2DZPX7ckUFtkzA1-rFPal4" />
         </provider>
 
 
